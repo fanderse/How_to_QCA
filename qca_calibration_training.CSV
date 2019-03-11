@@ -1,0 +1,147 @@
+COUNTRY;YEAR;GOV_LEFT2;GOV_TYPE;GDP_GROWTH;UNEMPLOYMENT
+Austria;2008;50,91;Minimal winning coalition;1,460425;4,1
+Austria;2009;52,71;Minimal winning coalition;-3,76458;5,3
+Austria;2010;52,71;Minimal winning coalition;1,837095;4,8
+Austria;2011;52,71;Minimal winning coalition;2,922798;4,6
+Austria;2012;52,71;Minimal winning coalition;0,680444;4,9
+Belgium;2008;19,76;Surplus coalition;0,783173;7
+Belgium;2009;19,76;Surplus coalition;-2,253175;7,9
+Belgium;2010;26,14;Caretaker government;2,744213;8,3
+Belgium;2011;31,95;Caretaker government;1,798303;7,2
+Belgium;2012;40,63;Surplus coalition;0,234797;7,6
+Bulgaria;2008;48,65;Surplus coalition;6,021817;5,6
+Bulgaria;2009;27,59;Surplus coalition;-3,586071;6,8
+Bulgaria;2010;0;Single-party minority government;1,324009;10,3
+Bulgaria;2011;0;Single-party minority government;1,915018;11,3
+Bulgaria;2012;0;Single-party minority government;0,030944;12,3
+Switzerland;2008;25,75;Surplus coalition;2,154702;3,4
+Switzerland;2009;25,75;Surplus coalition;-2,222107;4,1
+Switzerland;2010;25,75;Surplus coalition;3,002699;4,8
+Switzerland;2011;25,84;Surplus coalition;1,692808;4,4
+Switzerland;2012;27,54;Surplus coalition;1,006024;4,5
+Cyprus;2008;61,78;Single-party majority government;3,863813;3,7
+Cyprus;2009;67,66;Single-party majority government;-1,772745;5,4
+Cyprus;2010;63;Single-party majority government;1,318056;6,3
+Cyprus;2011;78,74;Single-party majority government;0,32116;7,9
+Cyprus;2012;100;Single-party majority government;-3,157982;11,9
+Czech Republic;2008;6;Multi-party minority government;2,682283;4,4
+Czech Republic;2009;2,09;Technocratic government;-4,802572;6,7
+Czech Republic;2010;0;Technocratic government;2,27342;7,3
+Czech Republic;2011;0;Minimal winning coalition;1,777833;6,7
+Czech Republic;2012;0;Minimal winning coalition;-0,799844;7
+Germany;2008;49,59;Minimal winning coalition;1,082315;7,4
+Germany;2009;40,76;Minimal winning coalition;-5,61886;7,6
+Germany;2010;0;Minimal winning coalition;4,079933;7
+Germany;2011;0;Minimal winning coalition;3,66;5,8
+Germany;2012;0;Minimal winning coalition;0,491993;5,4
+Denmark;2008;0;Multi-party minority government;-0,512025;3,4
+Denmark;2009;0;Multi-party minority government;-4,906526;6
+Denmark;2010;0;Multi-party minority government;1,870993;7,5
+Denmark;2011;19,21;Multi-party minority government;1,336775;7,6
+Denmark;2012;77,9;Multi-party minority government;0,226468;7,5
+Spain;2008;100;Single-party minority government;1,117687;11,3
+Spain;2009;100;Single-party minority government;-3,573751;17,9
+Spain;2010;100;Single-party minority government;0,014064;19,9
+Spain;2011;96,44;Single-party minority government;-0,998765;21,4
+Spain;2012;0;Single-party majority government;-2,927751;24,8
+Estonia;2008;16,67;Minimal winning coalition;-5,419456;5,5
+Estonia;2009;7,03;Multi-party minority government;-14,724404;13,5
+Estonia;2010;0;Multi-party minority government;2,259076;16,7
+Estonia;2011;0;Minimal winning coalition;7,5973;12,3
+Estonia;2012;0;Minimal winning coalition;4,307259;10
+Finland;2008;11,9;Surplus coalition;0,720668;6,4
+Finland;2009;11,9;Surplus coalition;-8,269037;8,2
+Finland;2010;11,9;Surplus coalition;2,992338;8,4
+Finland;2011;33,31;Surplus coalition;2,570818;7,8
+Finland;2012;52,38;Surplus coalition;-1,426189;7,7
+France;2008;0;Surplus coalition;0,195295;7,4
+France;2009;0;Surplus coalition;-2,941341;9,1
+France;2010;0;Surplus coalition;1,965657;9,3
+France;2011;0;Single-party majority government;2,079229;9,2
+France;2012;62,84;Surplus coalition;0,182693;9,8
+United Kingdom;2008;100;Single-party majority government;-0,472541;5,6
+United Kingdom;2009;100;Single-party majority government;-4,187762;7,6
+United Kingdom;2010;37,81;Minimal winning coalition;1,694547;7,8
+United Kingdom;2011;0;Minimal winning coalition;1,452565;8,1
+United Kingdom;2012;0;Minimal winning coalition;1,48133;7,9
+Greece;2008;0;Single-party majority government;-0,335173;7,8
+Greece;2009;20,27;Single-party majority government;-4,300734;9,6
+Greece;2010;100;Single-party majority government;-5,479037;12,7
+Greece;2011;94,98;Single-party majority government;-9,132494;17,9
+Greece;2012;36,73;Surplus coalition;-7,300494;24,5
+Hungary;2008;96,76;Single-party minority government;0,855513;7,8
+Hungary;2009;100;Single-party minority government;-6,599974;10
+Hungary;2010;40,55;Single-party majority government;0,682378;11,2
+Hungary;2011;0;Single-party majority government;1,661917;11
+Hungary;2012;0;Single-party majority government;-1,64378;11
+Ireland;2008;6,95;Surplus coalition;-3,935932;6,8
+Ireland;2009;6,96;Surplus coalition;-4,626788;12,6
+Ireland;2010;7,11;Minimal winning coalition;1,801657;14,6
+Ireland;2011;27,16;Minimal winning coalition;2,984992;15,4
+Ireland;2012;32,75;Minimal winning coalition;0,037153;15,5
+Italy;2008;33,88;Minimal winning coalition;-1,050403;6,7
+Italy;2009;0;Minimal winning coalition;-5,482055;7,7
+Italy;2010;0;Minimal winning coalition;1,686523;8,4
+Italy;2011;0;Minimal winning coalition;0,576623;8,4
+Italy;2012;0;Technocratic government;-2,819014;10,7
+Lithuania;2008;62,95;Minimal winning coalition;2,628078;5,8
+Lithuania;2009;0;Surplus coalition;-14,814163;13,8
+Lithuania;2010;0;Surplus coalition;1,639819;17,8
+Lithuania;2011;0;Surplus coalition;6,049354;15,4
+Lithuania;2012;4,24;Surplus coalition;3,834902;13,4
+Luxembourg;2007;36,81;Minimal winning coalition;8,354553;4,2
+Luxembourg;2008;36,81;Minimal winning coalition;-1,279586;4,9
+Luxembourg;2009;35,29;Minimal winning coalition;-4,358607;5,1
+Luxembourg;2010;33,38;Minimal winning coalition;4,864969;4,6
+Luxembourg;2011;33,38;Minimal winning coalition;2,539235;4,8
+Luxembourg;2012;33,38;Minimal winning coalition;-0,352519;5,1
+Latvia;2008;0;Surplus coalition;-3,547644;7,7
+Latvia;2009;0;Surplus coalition;-14,401692;17,5
+Latvia;2010;0;Multi-party minority government;-3,94067;19,5
+Latvia;2011;0;Minimal winning coalition;6,381021;16,2
+Latvia;2012;0;Minimal winning coalition;4,034628;15
+Malta;2008;0;Single-party majority government;3,346571;6
+Malta;2009;0;Single-party majority government;-2,462346;6,9
+Malta;2010;0;Single-party majority government;3,54315;6,9
+Malta;2011;0;Single-party majority government;1,408348;6,4
+Malta;2012;0;Single-party majority government;2,605204;6,3
+Netherlands;2008;41,28;Minimal winning coalition;1,699061;3,7
+Netherlands;2009;41,28;Minimal winning coalition;-3,767584;4,4
+Netherlands;2010;5,65;Caretaker government;1,402662;5
+Netherlands;2011;0;Multi-party minority government;1,663626;5
+Netherlands;2012;7,49;Multi-party minority government;-1,057037;5,8
+Norway;2008;87,38;Minimal winning coalition;0,480792;2,5
+Norway;2009;87,35;Minimal winning coalition;-1,691044;3,2
+Norway;2010;87,23;Minimal winning coalition;0,691663;3,6
+Norway;2011;87,23;Minimal winning coalition;0,971935;3,3
+Norway;2012;87,23;Minimal winning coalition;2,721627;3,2
+Poland;2008;12,86;Minimal winning coalition;4,249609;7,1
+Poland;2009;12,86;Minimal winning coalition;2,82026;8,1
+Poland;2010;12,86;Minimal winning coalition;3,606928;9,7
+Poland;2011;12,75;Minimal winning coalition;5,017235;9,7
+Poland;2012;11,94;Minimal winning coalition;1,607907;10,1
+Portugal;2008;100;Single-party majority government;0,199273;8,8
+Portugal;2009;100;Single-party majority government;-2,978104;10,7
+Portugal;2010;100;Single-party minority government;1,898691;12
+Portugal;2011;46,85;Minimal winning coalition;-1,826852;12,9
+Portugal;2012;0;Minimal winning coalition;-4,028257;15,8
+Romania;2008;1,34;Multi-party minority government;8,259868;5,6
+Romania;2009;36,56;Minimal winning coalition;-5,910364;6,5
+Romania;2010;3,07;Multi-party minority government;-2,811595;7
+Romania;2011;9,34;Multi-party minority government;2,029782;7,2
+Romania;2012;43,19;Surplus coalition;1,23819;6,8
+Slovakia;2008;58,82;Minimal winning coalition;5,629779;9,6
+Slovakia;2009;58,82;Minimal winning coalition;-5,422542;12,1
+Slovakia;2010;30,46;Minimal winning coalition;5,041717;14,5
+Slovakia;2011;0;Minimal winning coalition;2,8191;13,7
+Slovakia;2012;74,32;Single-party majority government;1,657149;14
+Slovenia;2008;80,53;Minimal winning coalition;3,30013;4,4
+Slovenia;2009;71,94;Minimal winning coalition;-7,797277;5,9
+Slovenia;2010;71,94;Minimal winning coalition;1,237756;7,3
+Slovenia;2011;79,46;Minimal winning coalition;0,649367;8,2
+Slovenia;2012;77,35;Surplus coalition;-2,669582;8,9
+Sweden;2008;0;Minimal winning coalition;-0,557048;6,2
+Sweden;2009;0;Minimal winning coalition;-5,184659;8,3
+Sweden;2010;0;Minimal winning coalition;5,988927;8,6
+Sweden;2011;0;Multi-party minority government;2,664408;7,8
+Sweden;2012;0;Multi-party minority government;-0,286321;8
