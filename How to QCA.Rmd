@@ -1,0 +1,668 @@
+---
+title: "How to QCA"
+author: "Florian Andersen"
+date: "13 March 2019"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE, echo = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+******
+#### Section 01: Introduction
+
+This manual is intended to aid (semi-) experienced R users with Qualitative 
+Comparative Analysis. User's familiarity with basic R features, such as object types, subsetting, functions, packages, is presupposed. Familiarity with QCA as an approach is also presupposed. This manual only pertains commands and techniques specific to QCA in R.
+
+******
+
+#### Section 02: Packages
+
+For performing QCA in R, at least two packages are available: QCA and QCApro. 
+Both are developed by Alrik Thiem and Adrian Dusa. QCApro is the successor package of QCA and thus recommended, and the QCA package is not under development anymore. Unfortunately, it includes some handy commands (e.g. XYplot), which QCApro does not. If the user would like to use such commands, they have to "switch off" QCApro and "switch on"" QCA, since both packages should not be loaded at the same time in one R session.
+
+Working with either QCA or QCApro, the user will be confronted with some strange peculiarities and, unfortunately, also some bugs. For example, QCApro does not allow analyses if the data.frame or matrix loaded contains any non-numeric values, even if these values are not handed to the analysis command in question. A column containing, e.g. country names as strings, needs to be removed first. Whenever actual bugs occur, it usually helps to restart the R session.
+
+
+*Load Packages*
+```{r}
+library(QCApro) # work horse
+```
+
+Additionally to QCApro, we use two auxiliary packages:  
+1. xlsx for loading excel sheets,  
+2. tidyverse for convenient functions included in ggplot2 and dplyr
+
+```{r, include = FALSE}
+library(xlsx) # load xlsx data
+library(tidyverse) # utilties like ggplot, dplyr and more
+library(shiny) # for the interactive app (does not concern users of this file)
+```
+******
+#### Section 03: Data Management and Calibration
+
+Before the actual Qualitative Comparative Analysis, we need to transform
+raw (quantitative or qualitative) data into set memberships. 
+
+First, let's load some raw data:
+
+```{r, echo = FALSE}
+setwd("C:/Users/Florian/Desktop/LS Makro - QCA/Jan QCA Intro")
+```
+
+*Load Data*
+```{r}
+# make sure to set your working directory where R can find the data
+data <- read.xlsx("qca_calibration_training.xlsx", 1)
+```
+
+The data include annual observations of European countries recording the share
+of parliamentary seats of left parties (GOV_LEFT2), the type of government, e.g. whether it is a minority or majority government (GOV_TYPE), the annual economic growth (GDP_GROWTH), and the rate of unemployment (UNEMPLOYMENT).
+
+Let's see how the data look:
+
+*Inspect Data*
+```{r}
+str(data)
+summary(data)
+```
+
+*******
+
+These raw data now need to be transformed into set membership data. We use so
+called *fuzzy set* calibration, meaning that set membership values can vary between 0 and 1.
+
+Generally, there exist two strategies for calibration: direct/manual and transformative/automatic. For direct calibration, the analyst chooses the fuzzy set values they want to assign to each raw value individually and manually. This makes great sense for analyses using only few cases or raw variables which are categorical or have few metric values. In contrast, for transformative calibration, raw values are being fed through some mathematical function to map them onto fuzzy set values. Later in this document, there is an interactive graph which should make this strategy more vivid.
+
+The sets resulting from these calibrations need to be carefully defined by the analyst beforehand. The definition and labeling of these sets is crucial: The set "countries with very strong trade unions" will include different cases than the set "countries with strong unions", possibly heavily influencing results.
+
+Depending on how a set is defined conceptually, there are three technical questions the analyst must answer before they can calibrate:  
+
+1. Which raw value is necessary for a case being a *full member* of the set, i.e. being assigned a fuzzy score of 1?    
+2. Which raw value is necessary for a case being considered *more in than out* of the set, i.e. being assigned a fuzzy score of >0.5?   
+3. Which raw value is necessary for a case being *completely out* of the set, i.e. being assigned a fuzzy score of 0?   
+   
+Those three values are minimally necessary for calibration. This is true for calibrating quantitative data via mathematical functions, as well as for qualitative data. For example, when calibrating qualitative data, the analyst has to decide whether a country with a single-party minority government is a member of the set "countries with weak governments", and accordingly assign fuzzy scores, depending on their pre-specified set definition.
+
+Note that using three thresholds (full-membership, membership cross-over, full-non-membership) results in four groups:  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Cases which are full members,   
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. cases which are more in than out of the set,   
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. cases which are more out than in the set,   
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4. cases which are fully out of the set.   
+Cases in these groups do not necessarily all display the same fuzzy scores, but they will be within the range of two of the thresholds.
+
+
+*******
+
+In order to undestand what calibration actually means, let's have a look at an example variable, GOV_LEFT2. Based on this variable, we would like to create a set called "Left Governments". We will first have a look at the distribution of this variable:
+
+```{r}
+summary(data$GOV_LEFT2)
+ggplot(data, aes(x = GOV_LEFT2)) + geom_density()
+```
+
+Looking at the distribution of this variable, we can clearly see that many cases fall below a value of 25%, whereas only a few cases lie above a value of 75%. With a mean of 31.07% and a median of 19.76%, we have a highly right skewed distribution. 
+
+********
+
+According to the three technical questions stated above, the analyst now needs to think about plausible thresholds for calibration. For example, intuitively they might be inclined to assign the 0.5-cross-over value to the mean of the distribution, i.e. 31.07. But is it plausible to speak of left governments only when the relative number of parliamentary seats occupied by left parties is larger than 31.07%? Equally as intuitively, disregarding the data at hand, the analyst may think that 50% might be a more plausible cross-over point, because only when a majority of seast is held by left parties, a governmet can be deemed left.
+
+Luckily, QCApro offers a handy command with which the analyst can have QCApro suggest them thresholds based on the data. This command is based on a simple clustering algorithm and identifies "gaps" in the data to identify more or less similar observations.
+
+The analyst hands to the command the respective variable and the number of desired groups. As stated above, calibrating using three thresholds yields *four* groups.
+
+```{r}
+findTh(data$GOV_LEFT2, 4)
+```
+
+According to this command, considering only the data, cases should be fully out of the set with values of 14.756 and lower, they should be considered more in than out of the set with values between 39.180 and 75.835, and above 75.835, they whould be considered full members.
+
+Ultimately, it is up to the analyst which thresholds they deem plausible and useful for their analyses. It should be noted that the identification of thresholds usually is only important for metric raw variables. If the analyst was to calibrate a categorical variable with, say, 7 categories, they would not have to think about thresholds, but about direct correspondences between raw categories and set membership values. An example for this is given below.
+
+********
+
+However, since GOV_LEFT2 is metric (with 70 unique values occuring in the data), findTh() is a handy tool. And since GOV_LEFT2 is metric, we will also use automatic/transformative calibration!
+
+Technically, raw values are fed through some mathematical function $y = f(x)$. In principal, any function which produces values between 0 and 1 may be used for this purpose. A discussion of the technical details can be found in Thiem, A., & Dusa, A. (2012). Qualitative comparative analysis with R: A user's guide, section 4.1.3.
+
+For the purpose of this manual, it is more important to understand the workings of the command provided by QCApro: calibrate(). Before looking at the specifics of the actual command, let's have a look at the relationship between raw variables and set membership values. The interactive graphic below shows the raw values of GOV_LEFT2 on the x-axis, and the corresponding set membership values on the y-axis. The analyst can now adjust the thresholds (initial values are those provided by findTh()), and they can control whether the relationship should be linear or logistic. Specifying a logistic relationship usually produces smoother functions, especially around the tails of the distribution. The analyst is invited to play around with the graphic to get an understanding of the transformation process.
+
+```{r, echo = FALSE}
+# Define UI for app that draws the plot  ----
+ui <- fluidPage(
+
+        # App title ----
+        titlePanel("QCA Automatic Transformation"),
+
+        # Sidebar layout with input and output definitions ----
+        sidebarLayout(
+
+                # Sidebar panel for inputs ----
+                sidebarPanel(
+
+                        # Input: Buttons ----
+                        numericInput(inputId = "logistic",
+                                     label = "Logistisch? (1 oder 0)",
+                                     value = "0"),
+
+                        numericInput(inputId = "lower_th",
+                                     label = "Fully out (fs score = 0)",
+                                     value = "14.765"),
+                        numericInput(inputId = "middle_th",
+                                     label = "Cross-over (fs score > 0.5)",
+                                     value = "39.180"),
+                        numericInput(inputId = "upper_th",
+                                     label = "Fully in (fs score = 1)",
+                                     value = "75.835")
+
+                ),
+
+                # Main panel for displaying outputs ----
+                mainPanel(
+
+                        # Output: Scatterplot ----
+                        plotOutput(outputId = "relPlot")
+
+                )
+        )
+)
+
+# Define server logic required for the plot ----
+server <- function(input, output) {
+        data <- read.xlsx("qca_calibration_training.xlsx", 1)
+        output$relPlot <- renderPlot({
+                y   <- calibrate(data$GOV_LEFT2,
+                                 type = "fuzzy",
+                                 thresholds = c(input$lower_th,
+                                                input$middle_th,
+                                                input$upper_th),
+                                 logistic = input$logistic)
+
+                x    <- data$GOV_LEFT2
+
+                plot(x, y, col = "#75AADB",
+                     xlab = "Rohwerte",
+                     ylab = "fuzzy-scores")
+
+        })
+
+}
+
+# Run the application
+shinyApp(ui = ui, server = server)
+```
+
+**********
+
+Using the interactive graphic, the analyst just used the calibrate() function to map raw data onto membership values. The corresponding R code looks as follows:
+
+```{r}
+calibrate(data$GOV_LEFT2, # vector with raw data
+          type = "fuzzy", # type of QCA (crisp or fuzzy)
+          thresholds = c(14.765, 39.180, 75.835), # thresholds (initial values                                                     as provided by findTh())
+          logistic = TRUE)# type of relationship (linear or logistic)
+```
+
+Using the thresholds the anaylst deems plausible and useful for their analysis, they can use calibrate() to assign membership values to raw data and save the resulting membership values in a new variable.
+
+```{r}
+data$Left_Gov <- calibrate(data$GOV_LEFT2,
+                           type = "fuzzy",
+                           thresholds = c(14.765, 39.180, 75.835),
+                           logistic = TRUE)
+```
+
+Oftentimes, it will make sense to round the resulting values to one or two decimals. After all, QCA is about qualitative data, and quantiative differences at the 10th decimal usually cannot be interpreted in any meaningful, qualitative way. Rounding is achieved using R base syntax:
+
+```{r}
+data$Left_Gov <- round(data$Left_Gov, 2) # the number indicates the desired                                               number of decimals
+```
+
+This procedure - inspecting raw data, thinking about plausible thresholds, inspecting suggested threhsolds based on the data, and final calibration - are the same for each metric variable for which manual calibration is unfeasible.
+
+********
+
+In this section we will deal with a categorical variable, GOV_TYPE. Our aims is to calibrate a set called "Weak Government". Again, before we go into the actual calibration, let's have a look at the data.
+
+```{r}
+levels(data$GOV_TYPE)
+ggplot(data, aes(x = GOV_TYPE)) + 
+        geom_bar() + 
+        theme(axis.text.x = element_text(angle = 60, hjust = 1))
+```
+
+The variables can take on seven distinct values. The frequency distribution over these values is not even: Most frequently, governments seem to be minimal winning coalitions. 
+
+Manual calibration technically works as every other recode or reassignment in R. However, the analyst needs to think about possible membership values beforehand, as they are not automatically given by some function. For example, the analyst might think that a minimal winning coalition is a strong government in the sense that it holds the majority of votes in parliament, but it is also weak in the sense that it is only "minimally" winning. Furthermore, since it is a coalition government, internal disputes might weaken the government. 
+
+Code for this simple reassignment is given below. The anaylst is invited to make up their own mind about about plausible values and replace the 1s accordingly.
+
+```{r}
+data$Weak_Gov[data$GOV_TYPE == "Caretaker government"] <- 1
+data$Weak_Gov[data$GOV_TYPE == "Minimal winning coalition"] <- 1
+data$Weak_Gov[data$GOV_TYPE == "Multi-party minority government"] <- 1
+data$Weak_Gov[data$GOV_TYPE == "Single-party majority government"] <- 1
+data$Weak_Gov[data$GOV_TYPE == "Single-party minority government"] <- 1
+data$Weak_Gov[data$GOV_TYPE == "Surplus coalition"] <- 1
+data$Weak_Gov[data$GOV_TYPE == "Technocratic government"] <- 1
+```
+
+Using either automatic or manual calibration, the analyst can transform any raw variable into a variable holding set membership values.
+
+*******
+
+Furthermore, it is possible to construct joint sets of two or more membership variables. For example, the analyst may be convinced that a certain outcome can only occur when Variable 01 AND Varibale 02 occur. Alternatively, they might suspect that the occurence both variables are interchangeable, and the outcome will occur when either Variable 01 OR Variable 02 occur, or both. Such relationships can be modelled using pmax() and pmin().
+
+The command pmin() returns the parallel minimum of values in a distribution, i.e. the lowest value for each pair of values. This corresponds to a logical AND relation. Analogously, pmax() gives the parallel maximum of a pair of values, which corresponds to a logical OR. Note this kind of OR is inclusive: Either Variable 01 or Variable 02, or both. See the following example for an illustration:
+
+```{r}
+x <- c(1,3,5,7,9)
+y <- c(2,3,5,6,8)
+pmax(x,y)
+pmin(x,y)
+```
+
+These are all the tools one typically needs for calibration in QCA in R.
+
+**********
+
+#### Section 04: Analysis of Necessary Conditions
+
+Using the few commands presented so far, the analyst is capable of calibration each raw variable into a set of membership values. But calibration is only a preparatory step in QCA, though a crucial one. The main purpose of QCA is to identify necessary and sufficient conditions under which a specific outcome is to occur. This section deals with the analysis of necessary conditions. 
+
+For that purpose, let's load a new dataset containing only fuzzy set membership values based on the same variables we have seen earlier.
+
+*Load Data*
+```{r}
+rm(list = ls()) # delete all objects from working environment
+data <- read.xlsx("qca_analysis_training.xlsx", 1)
+```
+
+Let's have a look at the data:
+
+*Inspect Data*
+```{r}
+str(data)
+```
+
+As we can see, there is one column in this data.frame which contains case names. As stated in secion 02 of this document, QCApro does not allow anaylses if the data contain any non-numeric values. For the case of case identifiers, this issue can avoided by declaring the case names as rownames and deleting the respective column from the data.frame.
+
+```{r}
+rownames(data) <- data$CASE # set "CASE" as rownames
+data <- subset(data, select = -CASE) # delete CASE
+```
+
+```{r}
+str(data)
+```
+
+********
+
+A first analytical step will usually involve identifying single necessary conditions for the occurence of the outcome. As QCA allows asymmetric relationships, an analogous analysis should be perfomed identifying necessary conditions of the non-occurence of the outcome.
+
+The central workhorse for this is the command superSubset(), which, depending on the user's specification, identifies necessary (supersets) or sufficient (subsets) conditions for the outcome or the negation of the outcome. This command is typically used in combination with pof(), which stands for parameters of fit. While superSubset() produces a list of conditions, pof uses this list to calculate typical QCA paramters of fit, suchs a consistency (called inclusion in QCApro) and coverage. 
+
+Using superSubset(), we produce an object nec_1. Although we would like to evaluate single conditions, superSubset() takes at least two conditions, otherwise it does not work. We then pass a component of nec_1, coms, to pof(), which produces a table with parameters of fit. Note that the component incl.cov of nec_1 also contains these exact values, but pof() turns them into a nicely formatted table.
+
+```{r}
+nec_1 <- superSubset(data, 
+                   outcome = "OUTCOME", # name of outcome 
+                   neg.out = FALSE,     # should the negated outcome be                                                   evaluated?
+                   exo.facs = c("GOV_LEFT_S", # at least two conditions must be                                               # provided, or instead if an                                                   # empty list c("") is provided,                                                # the command takes all                                                        # conditions in the data into                                                  # account
+                                "WEAK_GOV"), 
+                   
+                   relation = "nec",    # necessity oder sufficiency?
+                   incl.cut = 0.00,     # incl.cut refers to the minimum                                               # consistency for a condition to be                                            # included in this list
+                   cov.cut = 0.00)      # cov.cut refers to the minimum                                                # coverage for a condition to be                                               # included in this list
+```
+
+```{r}
+pof(nec_1$coms, 
+    outcome = "OUTCOME", # specify the outcome
+    data,                # specify the data
+    relation = "nec")    # specify which relation to evaluate
+```
+
+For comparison of output with pof(), have a look at the incl.cov component of nec_1:
+
+```{r}
+nec_1$incl.cov
+```
+
+Either way, we obtain a table with each condition and their respective combinations, in normal and negated form. Lower-case condition names indicate the negated form of the condition (which simply equals 1 - condition), upper-case condition names indicate the normal condition. The asterik (*) indicates an AND-combination of conditions. A plus (+) would indicate an OR-combination.
+
+Using only these two commands, the analyst can evaluate all pairs of conditions for the normal outcome or the negated outcome. Furthermore, by providing exo.facts with an empty list c(""), superSubset will evaluate all membership variables in the data simultanesouly. Since this usually produces a long, barely readable list, it may be preferrable to run the command multiple times for each condition.
+
+*******
+
+If the analyst was interested in evaluating all conditions simultanesouly, but only on those conditions or combinations of conditions which pass a certain criterion, the corresponding specification might looks like this:
+
+```{r}
+nec_2 <- superSubset(data, 
+                   outcome = "OUTCOME", 
+                   neg.out = FALSE, 
+                   exo.facs = c(""), # wird dies freigelassen, werden alle
+                   relation = "nec", 
+                   incl.cut = 0.90,  # store only conditions or combination of                                      # conditions with a minimum consistency of                                      # .90
+                   cov.cut = 0.00)
+
+pof(nec_2$coms, 
+    outcome = "OUTCOME", 
+    data, 
+    relation = "nec")
+```
+
+Now we have a table containing 19 conditions which surpass the specific .90 threshold. One way to reduce the number of conditions (and simplify interpretation) is to adjust the minimum coverage value required. We can do this in a data-oriented way by utilising the distribution of coverage values in the tabe we just produced. Coverage values are stored as a component of the result of superSubset(), and we can simply use summary() to get some descriptives of this distribution: 
+
+```{r}
+summary(nec_2$incl.cov$cov.r)
+```
+
+The mean coverage of the 19 combinations of conditions is 0.5971 and the maximum is 0.6256. Thus, one intuitive way to reduce to number of results is to require a coverage values a little above the mean, say 0.60.
+
+```{r}
+
+nec <- superSubset(data, 
+                   outcome = "OUTCOME", 
+                   neg.out = FALSE, 
+                   exo.facs = c(""),
+                   relation = "nec", 
+                   incl.cut = 0.90, 
+                   cov.cut = 0.60)
+
+pof(nec$coms, 
+    outcome = "OUTCOME", 
+    data, 
+    relation = "nec")
+
+```
+
+Now we have a table containing combinations of conditions with relatively high consistency and coverage values. However, a meaningful interpretation of these results is still complicated. What, for example, does it mean when we say that the outcome occurs when cases display non-weak governments OR low economic growth OR non-high unemployment (see row one of the table). 
+
+Analysing individual necessary conditions usually will produce more insightful results than such combinations of conditions. This is different for sufficient conditions, with which we will deal in the next section.
+
+********
+
+#### Section 05: Analysis of Sufficient Conditions.
+
+Analysing sufficient conditions is very similar to analysing necessary ones, regarding the commands used. Single conditions are typically not investigated, however, since these so called "primitive expressions" should always be fed through some logical minimization algorithm. 
+
+But, as it happens, the consistency measure for necessary conditions equals the coverage measure for sufficient conditions, and the coverage measure for necessary conditions equals the consistency measure for sufficient conditions. Thus, all information regrading consistency and coverage of all individual conditions can be read from the tables created in the step of necessity analyis.
+
+For analysing sufficient conditions, we use the same command superSubset() as before. We just change the relation parameter to "suf". Furthermore, we adjust the required consistency value for solutions to .75, a standard value suggested in the literature. 
+
+```{r}
+#### Sufficient conditions with a required consistency score of .75
+suf_1 <- superSubset(data, 
+                     outcome = "OUTCOME", 
+                     neg.out = FALSE, 
+                     exo.facs = c(""),
+                     relation = "suf", 
+                     incl.cut = 0.75, 
+                     cov.cut = 0.00)
+
+pof(suf_1$coms, 
+    outcome = "OUTCOME", 
+    data, 
+    relation = "suf")
+```
+
+The resulting table shows there are five solution terms. Most of them are connected via "*", which indicates a logical AND.
+
+We specified a minimum consistency value of .75 for the command to accept solution terms. A slightly different strategy from pre-specifying a consistency value is running the superSubset() command with a required consistency value of 0.00 and then use the resulting distribution of consistency scores over all generated solution terms to determine a useful consistency threshold.
+
+```{r}
+suf_2 <- superSubset(data, 
+                     outcome = "OUTCOME", 
+                     neg.out = FALSE, 
+                     exo.facs = c(""),
+                     relation = "suf", 
+                     incl.cut = 0.00, 
+                     cov.cut = 0.00)
+
+pof(suf_2$coms, 
+    outcome = "OUTCOME", 
+    data, 
+    relation = "suf")
+```
+
+The resulting distribution can be accesses as a component of the object suf_2, generated by the superSubset() command. This component, transformed into a data.frame, can then readily be passed to ggplot to generate a graphic. Alternatively, it may directly be passed to summary(), to get some descriptive statistics on the distribution.
+
+```{r}
+ggplot(as.data.frame(suf_2$incl.cov), aes(x = incl)) + 
+        geom_histogram(binwidth = .001)
+```
+
+From this plot, it is obvisous that there are two larger gaps in the distribution of consistency scores: The first lies between .65 and .70, and the second one lies between .70 and ~.79. We may now decide to ajust the consistency score up- or downwards.
+
+This may, however, produce very different results from the ones we see in the tables generated before. Depending on the consistency values, superSubset() will produce more or less complex solution terms connected via "*" and "+". 
+
+**********
+
+Even a highly consistent solution term ultimately may prove to be irrelevant once solution terms are logically minimized. Logical minimization is at the heart of QCA, since it reduces potentially highly complex combination of conditions to more parsimonious terms. The raw solution terms are called "primitive expressions", and the minimized terms "prime implicants". The logic of this procedure is well described here: https://de.wikipedia.org/wiki/Verfahren_nach_Quine_und_McCluskey
+
+In terms of code, truthTable() can be used to produce a truth table object.
+
+```{r}
+#### Create Thruth Table
+ttable_1 <- truthTable(data, 
+                       outcome = "OUTCOME", # specify Outcome
+                       exo.facs = c(""),  # use all columns in data
+                       n.cut = 1,         # specify the number of cases
+                                          # needed for a thruth table row
+                                          # to be deemed sufficiently                                                    # sufficient
+                       incl.cut1 = 0.75,  # specify the minimum consistency                                              # value required for a row to be                                               # deemed sufficient
+                       
+                       incl.cut0 = 0.75,  # This value may be set equal or                                               # lower than incl.cut1. If it is set                                           # to be lower, consistency values                                              # which lie between incl.cut1 and                                             # incl.cut0 are considered logical                                             # contradictions: Their consistency                                            # is too high to be considered                                                 # not-sufficient, but also too low to                                           # be considered sufficient.
+                                         
+                       sort.by = "incl, n", 
+                       decreasing = TRUE,
+                       complete = FALSE, 
+                       show.cases = TRUE,
+                       relation = "suf")
+
+```
+
+The actual truth table is a component of the object we just created and can be accessed as follows:
+
+```{r}
+table <- ttable_1$tt # save actual truth table
+table
+```
+
+
+In some instances it may be useful to extract the truth table from R, save it in another format and work with it manually. This can simply be achieved as follows:
+
+```{r}
+# adjust file.path() as needed
+write.xlsx(table,
+           file = file.path(
+                   "C:/Users/Florian/Desktop/LS Makro - QCA/Jan QCA Intro", 
+                   "complete_truth_table.xlsx"),
+           row.names = FALSE)
+```
+
+Whether or not the analyst adjusts the truth table manually, they need to pass it to another command to perform the logical minimization. The command is called eQMC(), which means enhanced Quine-McCluskey. This command either takes the truth table object as input, or the raw data. If the analyst has tampered with the truth table, they obvisously need to hand this adjusted version to the algorithm and not the raw data. If the truth table object is the original output of truthTable(), ceteris paribus, the results should be the same irrespective of whether the analyst uses raw data or the truth table. 
+
+***********
+
+Anyhow, the eQMC() algorithm simply looks as follows:
+
+```{r}
+eQMC(ttable_1, 
+     outcome = "OUTCOME", 
+     incl.cut1 = 0.75, # choose consistency score
+     details = TRUE,   
+     sol.type = "ps", # choose type of solution. ps = parsimonious, cs = complex. However, only ps should be used.
+     n.cut = 1)       # choose number of cases required for a path to be considered sufficient
+
+```
+
+The output of this command confront the analyst with a lot of information. We will go through the output top to bottom.
+
+At the top, we see a line starting with "n OUT". This line indicates for each state of the outcome - present (1), not present (0), and contradiction (C) - the number of cases which fall into each category. The line underneath that simply displays the total number of cases used for this analysis. 
+
+Below that line, we see "M1", followed by a combination of conditions connected via OR and AND. This represents the full model resulting from the logical minimization. In this case, the model contains three distinct paths, connected via OR, which, in turn, consist of one or two conditions connected via AND. Thus, the model reads: "A Weak Government OR a Left Government AND the absence of Low Growth OR Low Growth AND the absence of High Unemployment are SUFFICIENT for the Outcome".
+
+Below this description of the mode, one can see parameters of fit for each of the model components, as well as, in the last line of the table labelled "M1", parameters of fit for the full model. "Incl", again, is the solution consistency. "Cov.r" represents the coverage of the solution, that is, the degree to which the consistent part of this condition or combination of conditions overlaps with the outcome. "Cov.u" tells us that the degree to which one component of the model uniquely explains certain cases, i.e. explains cases which are not covered by any other component of the model. In this case, WEAK GOV displays the second highest consistency, the highest coverage, and, by far, the highest unique coverage. Substantively, this means that WEAK GOV is a relatively consistent sufficient condition on its own, which also displays a high degree of coverage, and also seems to uniquely explain a relatively high number of cases, which cannot be accounted for by the other two components of the model. 
+
+However, in this exmaple, the full model falls short of reaching the .75 consistency score required to be considered sufficient for the outcome. It is ultimately up to the analyst how to deal with that.
+
+********
+
+#### Section 05: Plots
+
+So far, we have mainly relied on tabular output for inspecting and interpreting QCA output. However, especially for fuzzy set QCA, specific types of scatter plots, called XYplots, are extremely handy. 
+
+The QCA package conatins a command XYplot(), which unfortunately does not exist in QCApro. Now, the analyst can either "swith off" QCApro, which we have used so far, and "switch on" QCA, but those plots can also be built manually using simple ggplot syntax. We will focus on the ggplot solution, since it ultimately allows for more flexibility when presenting results.
+
+Before we start, we load two additional packages called "cowplot" and "ggrepel". Cowplot changes the standard visuals of ggplot output, and ggrepel allows for flexible labeling options. The usage of cowplot is completely optional though. I personally prefere cowplot output over ggplot's standard grey background and grid.
+
+```{r, include=F, echo=F}
+require(cowplot)
+require(ggrepel)
+```
+
+*************
+
+Lets go through building such a plot step by step. Say we would like to graphically displa the relationship between WEAK GOV and the Outcome. 
+
+First, as usual, one hands the data and the axes dimesnions which are to be plotted to ggplot:
+
+```{r}
+ggplot(data, aes(x = WEAK_GOV, y = OUTCOME))
+```
+
+Then, we add datapoints into this coordinate system. We do not use geom_point() but geom_jitter(). A jitter adds minimal random noise to the coordinates, with the effect that overlapping datapoints can be better discriminated. It is a purely visual adjustment and does not effect the data in any way.
+
+```{r}
+ggplot(data, aes(x = WEAK_GOV, y = OUTCOME)) + 
+        geom_jitter(size = 1,
+                    width = 0.003,
+                    height = 0.003) 
+```
+
+Furthermore, to enhance readability, we adjust the axes labels and breaks, and add axes titles. Additionaly, increasing the amount of information contained in one graph, we can add the parameters of fit as obtaines by, e.g., eQMC() for WEAK GOV as a subtitle in the plot. XYplot(), as available from the QCA package, automatically adds the parameters to plots; in our version, we need to manually add those values. A title my also be added to the plot. 
+
+```{r}
+ggplot(data, aes(x = WEAK_GOV, y = OUTCOME)) + 
+        geom_jitter(size = 1,
+                    width = 0.003,
+                    height = 0.003) + 
+        scale_x_continuous(breaks = seq(0, 1, by = 0.1), 
+                           limits = c(0,1)) + 
+        scale_y_continuous(breaks = seq(0, 1, by = 0.1), 
+                           limits = c(0,1)) + 
+        labs(x = "Weak Government", y = "Social Concertation",
+             title = "", 
+             subtitle = "Inclusion: 0.774  Raw Coverage: 0.554  Unique Coverage: 0.253") + 
+        theme(plot.title = element_text(size = 12),
+              plot.subtitle = element_text(size=12.5))
+```
+
+As a last step, we add vertical (geom_vline()), horizontal (geom_hline()), and diagonal (geom_abline()) lines to the plot. Those are extremely helpful for dirscriminating the different types of cases in any QCA. As we can see, the horizontal and vertical lines split the coordinate system into four qudrants.
+
+For the analysis of suffuciency, the two quadrants to the left are irrelevant. If we look at the vertical line, it cuts right through the 0.5-cross over point for WEAk GOV. That means, all cases to the left of this vertical line are more out than it the set WEAK GOV and therefore not important to our sufficiency analysis. This is immediately clear for the bottom left quadrant: Here, neither the conditions WEAK GOV nor the Outcome are present. Cases which fall into the top left quadrants are equally irrelevant: Here, the outcome is present, but the condition is not. Since for sufficiency analysis, this is no condtradiction, those cases do not interest us much. 
+
+The two quadrants to the right are more interesting. The top right quadrant represents those cases for which the condition as well as the outcome are present. However, cases within this quadrants which fall below the diagonal line reduce the consistency parameter, since sufficient conditions are defined as subersets of outcomes, and thus membership scores of conditions should be strictly greater than those of outcomes. More problematilly are those cases in the bottom right quadrant. For those cases, the outcome is not present but the condtion is, which contradicts the statement of sufficiency. 
+
+```{r}
+ggplot(data, aes(x = WEAK_GOV, y = OUTCOME)) + 
+        geom_jitter(size = 1,
+                    width = 0.003,
+                    height = 0.003) + 
+        scale_x_continuous(breaks = seq(0, 1, by = 0.1), 
+                           limits = c(0,1)) + 
+        scale_y_continuous(breaks = seq(0, 1, by = 0.1), 
+                           limits = c(0,1)) + 
+        labs(x = "Weak Government", y = "Social Concertation",
+             title = "", 
+             subtitle = "Inclusion: 0.774  Raw Coverage: 0.554  Unique Coverage: 0.253") + 
+        theme(plot.title = element_text(size = 12),
+              plot.subtitle = element_text(size=12.5)) +
+        geom_vline(xintercept = 0.5, linetype="dotted", 
+                   color = "black", size=0.5) + 
+        geom_hline(yintercept = 0.5, linetype="dotted", 
+                   color = "black", size=0.5) + 
+        geom_abline(intercept = 0, slope = 1, size=0.5, linetype="dotted")
+```
+
+Dealing with these issues is up to the researcher, but the plot helps to determine which cases are problematic ones. For example, we can simply label all cases for which the outcome is < 0.5 and the condition is > 0.8. This is achieved by the option geom_text_repel(), which adds flexible labels to datapoints. We specify that only a subset of the data is to be labelled. Further options, such as point.padding and segment.alpha only pertain the visuals of these labels; their workings can be looked up in the geom_text_repel documentation.
+
+```{r}
+ggplot(data, aes(x = WEAK_GOV, y = OUTCOME)) + 
+        geom_jitter(size = 1,
+                    width = 0.003,
+                    height = 0.003) + 
+        scale_x_continuous(breaks = seq(0, 1, by = 0.1), 
+                           limits = c(0,1)) + 
+        scale_y_continuous(breaks = seq(0, 1, by = 0.1), 
+                           limits = c(0,1)) + 
+        labs(x = "Weak Government", y = "Social Concertation",
+             title = "", 
+             subtitle = "Inclusion: 0.774  Raw Coverage: 0.554  Unique Coverage: 0.253") + 
+        theme(plot.title = element_text(size = 12),
+              plot.subtitle = element_text(size=12.5)) +
+        geom_vline(xintercept = 0.5, linetype="dotted", 
+                   color = "black", size=0.5) + 
+        geom_hline(yintercept = 0.5, linetype="dotted", 
+                   color = "black", size=0.5) + 
+        geom_abline(intercept = 0, slope = 1, size=0.5, linetype="dotted") + 
+        geom_text_repel(data=subset(data, WEAK_GOV >= 0.8 & OUTCOME < 0.5),
+                        aes(WEAK_GOV, OUTCOME,
+                            label=rownames(subset(data, WEAK_GOV >= 0.8 & OUTCOME < 0.5))),
+                        point.padding = 0.5,
+                        segment.alpha = 0.35,
+                        direction    = "both",
+                        angle        = 0,
+                        hjust        = 0.5,
+                        size         = 3.3)
+```
+
+*************
+
+Such plots can also be created for models which consist of multiple conditions. For that purpose, we can re-create a solution models via pmin() and pmax() presented in section 03. Since most models obtained through logical minimization will be some combination of AND and OR, those commands can be usded to build a corresponding set and add that to the data. 
+
+Lets return to the model obtains in section 04:
+
+```{r}
+eQMC(data, 
+     outcome = "OUTCOME", 
+     incl.cut1 = 0.75, # welcher Konsistenzwert?
+     details = TRUE,   
+     sol.type = "ps", # welche L?sungsform?
+     n.cut = 1)       # wie viele F?lle sind hinreichend?
+
+```
+
+Lets build this model using pmin() and pmax() and simply add it to our dataframe. We first use pmax(), since we have three components connected via OR. The first component is a single condition, and thus we add data$WEAK_GOV. Then, an AND-component follows, and thus we use pmin() within pmax() to create the AND-component. Since one of these components, LOW GROWTH, is a negated condition, we simply subtract the membership scores from 1 to get at the negated set. We perform analogous steps for the thirs component and thus obtain the full model:
+
+```{r}
+data$M1 <- pmax(data$WEAK_GOV, 
+                pmin(data$GOV_LEFT_S, 1 - data$LOW_GROWTH),
+                pmin(data$LOW_GROWTH, 1 - data$HIGH_UNEMPLOY))
+```
+
+This model can now be used for plotting as any other column of the dataframe. Note that, when performing more analyses based on these data, the analyst should remove the newly added column or reload the dataframe, since otherwise the M1-column will be intrepreted as an additional condition. Alternatively, the analyst may create an auxiliary dataframe only containing the Outcome and M1 just for plotting. Anyhow, plotting M1 and the outcome may look as follows. Parameters of fit may be added as subtitles.
+
+```{r}
+ggplot(data, aes(x = M1, y = OUTCOME)) + 
+        geom_jitter(size = 1,
+                    width = 0.003,
+                    height = 0.003) + 
+        scale_x_continuous(breaks = seq(0, 1, by = 0.1), 
+                           limits = c(0,1)) + 
+        scale_y_continuous(breaks = seq(0, 1, by = 0.1), 
+                           limits = c(0,1)) + 
+        labs(x = "Model 01", y = "Social Concertation",
+             title = "", 
+             subtitle = "") + 
+        theme(plot.title = element_text(size = 12),
+              plot.subtitle = element_text(size=12.5)) +
+        geom_vline(xintercept = 0.5, linetype="dotted", 
+                   color = "black", size=0.5) + 
+        geom_hline(yintercept = 0.5, linetype="dotted", 
+                   color = "black", size=0.5) + 
+        geom_abline(intercept = 0, slope = 1, size=0.5, linetype="dotted")
+```
