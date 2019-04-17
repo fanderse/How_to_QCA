@@ -1,7 +1,7 @@
 ---
 title: "How to QCA"
 author: "Florian Andersen"
-date: "13 March 2019"
+date: "20 March 2019"
 output: html_document
 runtime: shiny
 ---
@@ -223,7 +223,7 @@ This procedure - inspecting raw data, thinking about plausible thresholds, inspe
 
 ********
 
-In this section we will deal with a categorical variable, GOV_TYPE. Our aims is to calibrate a set called "Weak Government". Again, before we go into the actual calibration, let's have a look at the data.
+In this section we will deal with a categorical variable, GOV_TYPE. Our aim is to calibrate a set called "Weak Government". Again, before we go into the actual calibration, let's have a look at the data.
 
 ```{r}
 levels(data$GOV_TYPE)
@@ -236,7 +236,9 @@ The variables can take on seven distinct values. The frequency distribution over
 
 Manual calibration technically works as every other recode or reassignment in R. However, the analyst needs to think about possible membership values beforehand, as they are not automatically given by some function. For example, the analyst might think that a minimal winning coalition is a strong government in the sense that it holds the majority of votes in parliament, but it is also weak in the sense that it is only "minimally" winning. Furthermore, since it is a coalition government, internal disputes might weaken the government. 
 
-Code for this simple reassignment is given below. The anaylst is invited to make up their own mind about about plausible values and replace the 1s accordingly.
+Code for this simple reassignment is given below. The anaylst is invited to make up their own mind about about plausible values and replace the 1s accordingly. 
+
+Keep in mind that *any* value which satisfies $0 <= value <= 1$ could be applied, e.g. 0, 0.1, 0.45, 0.78901, and 1. In practice, I think values with more than two decimals spaces should be avoided (more on this below) and a certain symmetry in values should be adhered to. This means a set which looks like ${0, 0.4, 0.6, 1}$ should be preferred to one which looks like ${0, 0.1, 0.2, 1}$, unless there is very good reason not to. As always, it is the interplay between case knowledge and empirical data which dictates this choice. 
 
 ```{r}
 data$Weak_Gov[data$GOV_TYPE == "Caretaker government"] <- 1
